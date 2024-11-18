@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickMed Rwanda Home</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to QuickMed Rwanda</h1>
+        <p>Your one-stop solution for improving hospital operations and patient management.</p>
+        
+        <div class="links">
+            <h2>Navigate to:</h2>
+            <ul>
+                <li><a href="{{ url_for('view_appointments') }}">View Scheduled Appointments</a></li>
+                <li><a href="{{ url_for('view_staff') }}">View Registered Staff</a></li>
+                <li><a href="{{ url_for('register_patient') }}">Register a New Patient</a></li>
+                <li><a href="{{ url_for('appointments') }}">Schedule an Appointment</a></li>
+                <li><a href="{{ url_for('staff_management') }}">Manage Staff</a></li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
+
