@@ -2,26 +2,27 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuickMed Rwanda Home</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <title>QuickMed Rwanda - Home</title>
 </head>
 <body>
-    <div class="container">
-        <h1>Welcome to QuickMed Rwanda</h1>
-        <p>Your one-stop solution for improving hospital operations and patient management.</p>
-        
-        <div class="links">
-            <h2>Navigate to:</h2>
-            <ul>
-                <li><a href="{{ url_for('view_appointments') }}">View Scheduled Appointments</a></li>
-                <li><a href="{{ url_for('view_staff') }}">View Registered Staff</a></li>
-                <li><a href="{{ url_for('register_patient') }}">Register a New Patient</a></li>
-                <li><a href="{{ url_for('appointments') }}">Schedule an Appointment</a></li>
-                <li><a href="{{ url_for('staff_management') }}">Manage Staff</a></li>
-            </ul>
-        </div>
-    </div>
+    <h1>Welcome to QuickMed Rwanda</h1>
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('home') }}">Home</a></li>
+            <li><a href="{{ url_for('register_patient') }}">Register Patient</a></li>
+            <li><a href="{{ url_for('appointments') }}">Schedule Appointment</a></li>
+            <li><a href="{{ url_for('patient_list') }}">View Patients</a></li>
+            <li><a href="{{ url_for('staff_management') }}">Staff Management</a></li>
+            <li><a href="{{ url_for('view_appointments') }}">View Appointments</a></li>
+            <li><a href="{{ url_for('view_staff') }}">View Staff</a></li>
+            <li><a href="{{ url_for('login') }}">Login</a></li>
+            <li><a href="{{ url_for('signup') }}">Sign Up</a></li>
+        </ul>
+    </nav>
+
+    <p>QuickMed Rwanda is your comprehensive tool for managing patients, staff, and appointments efficiently.</p>
 </body>
 </html>
 

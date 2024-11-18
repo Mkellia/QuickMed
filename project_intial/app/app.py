@@ -1,5 +1,6 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 import sqlite3
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
@@ -29,6 +30,12 @@ def init_db():
                         name TEXT NOT NULL,
                         role TEXT NOT NULL)''')
 
+    # Users table for authentication
+    cursor.execute('''CREATE TABLE IF NOT EXISTS users (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        username TEXT UNIQUE NOT NULL,
+                        password TEXT NOT NULL)''')
+
     conn.commit()
     conn.close()
 
@@ -37,10 +44,63 @@ init_db()
 # Routes
 @app.route('/')
 def home():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
     return render_template('home.html')
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        hashed_password = generate_password_hash(password, method='sha256')
+
+        conn = sqlite3.connect('quickmed.db')
+        cursor = conn.cursor()
+        try:
+            cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_password))
+            conn.commit()
+            flash('Registration successful! You can now log in.', 'success')
+            return redirect(url_for('login'))
+        except sqlite3.IntegrityError:
+            flash('Username already exists. Please choose a different one.', 'danger')
+        finally:
+            conn.close()
+
+    return render_template('signup.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        conn = sqlite3.connect('quickmed.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
+        user = cursor.fetchone()
+        conn.close()
+
+        if user and check_password_hash(user[2], password):
+            session['user_id'] = user[0]
+            flash('Login successful!', 'success')
+            return redirect(url_for('home'))
+        else:
+            flash('Invalid username or password. Please try again.', 'danger')
+
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('user_id', None)
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('login'))
 
 @app.route('/register-patient', methods=['GET', 'POST'])
 def register_patient():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
     if request.method == 'POST':
         name = request.form['name']
         dob = request.form['dob']
@@ -61,6 +121,9 @@ def register_patient():
 
 @app.route('/appointments', methods=['GET', 'POST'])
 def appointments():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
     if request.method == 'POST':
         patient_id = request.form['patient-id']
         date = request.form['date']
@@ -80,6 +143,9 @@ def appointments():
 
 @app.route('/patient-list')
 def patient_list():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
     conn = sqlite3.connect('quickmed.db')
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM patients")
@@ -90,6 +156,9 @@ def patient_list():
 
 @app.route('/staff-management', methods=['GET', 'POST'])
 def staff_management():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
     if request.method == 'POST':
         name = request.form['staff-name']
         role = request.form['role']
@@ -105,9 +174,11 @@ def staff_management():
 
     return render_template('staff-management.html')
 
-# New route to view scheduled appointments
 @app.route('/view-appointments')
 def view_appointments():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
     conn = sqlite3.connect('quickmed.db')
     cursor = conn.cursor()
     cursor.execute('''SELECT a.id, p.name, a.date, a.time FROM appointments a
@@ -117,9 +188,11 @@ def view_appointments():
 
     return render_template('view-appointments.html', appointments=appointments)
 
-# New route to view registered staff members
 @app.route('/view-staff')
 def view_staff():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
     conn = sqlite3.connect('quickmed.db')
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM staff')
