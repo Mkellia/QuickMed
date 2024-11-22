@@ -89,8 +89,12 @@ def signup():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
+        email = request.form.get('email')  # Handle missing keys gracefully
+        password = request.form.get('password')
+
+        if not email or not password:
+            flash("Email and Password are required.", "danger")
+            return render_template('login.html')
 
         conn = sqlite3.connect('quickmed.db')
         cursor = conn.cursor()
@@ -107,6 +111,7 @@ def login():
             flash('Invalid email or password!', 'danger')
 
     return render_template('login.html')
+
 
 @app.route('/logout')
 def logout():
