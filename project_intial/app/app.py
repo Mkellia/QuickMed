@@ -10,7 +10,7 @@ def init_db():
     conn = sqlite3.connect('quickmed.db')
     cursor = conn.cursor()
 
-    # Create tables
+    # Create the patients table
     cursor.execute('''CREATE TABLE IF NOT EXISTS patients (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         name TEXT NOT NULL,
@@ -18,6 +18,7 @@ def init_db():
                         contact TEXT NOT NULL,
                         medical_history TEXT)''')
 
+    # Create the appointments table
     cursor.execute('''CREATE TABLE IF NOT EXISTS appointments (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         patient_id INTEGER NOT NULL,
@@ -25,21 +26,29 @@ def init_db():
                         time TIME NOT NULL,
                         FOREIGN KEY (patient_id) REFERENCES patients(id))''')
 
+    # Create the staff table
     cursor.execute('''CREATE TABLE IF NOT EXISTS staff (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         name TEXT NOT NULL,
                         role TEXT NOT NULL)''')
 
-    # Users table for authentication
+    # Users table for authentication (updated to include first_name, second_name, email, phone_number)
     cursor.execute('''CREATE TABLE IF NOT EXISTS users (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        username TEXT UNIQUE NOT NULL,
+                        firstname TEXT NOT NULL,
+                        lastname TEXT NOT NULL,
+                        email TEXT UNIQUE NOT NULL,
+                        number TEXT NOT NULL,
+                        username TEXT UNIQUE,
                         password TEXT NOT NULL)''')
 
+    # Commit the changes and close the connection
     conn.commit()
     conn.close()
 
+# Call the function to initialize the database
 init_db()
+
 
 # Routes
 @app.route('/')
@@ -51,45 +60,58 @@ def home():
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        username = request.form['username']
+        firstname = request.form['firstname']
+        lastname = request.form['lastname']
+        email = request.form['email']
+        number = request.form['number']
         password = request.form['password']
-        hashed_password = generate_password_hash(password, method='sha256')
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
 
         conn = sqlite3.connect('quickmed.db')
         cursor = conn.cursor()
+
         try:
-            cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_password))
+            cursor.execute(
+                '''INSERT INTO users (firstname, lastname, email, number, password) 
+                VALUES (?, ?, ?, ?, ?)''', 
+                (firstname, lastname, email, number, hashed_password)
+            )
             conn.commit()
-            flash('Registration successful! You can now log in.', 'success')
+            flash("Signup successful! Please log in.", "success")
             return redirect(url_for('login'))
         except sqlite3.IntegrityError:
-            flash('Username already exists. Please choose a different one.', 'danger')
+            flash("Email already exists. Please use a different email.", "danger")
         finally:
             conn.close()
 
     return render_template('signup.html')
+
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-
+        
         conn = sqlite3.connect('quickmed.db')
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
+        
+        cursor.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username, password))
         user = cursor.fetchone()
+        
         conn.close()
-
-        if user and check_password_hash(user[2], password):
-            session['user_id'] = user[0]
-            flash('Login successful!', 'success')
-            return redirect(url_for('home'))
+        
+        if user:
+            session['user_id'] = user[0]  # Store user ID in session
+            return redirect(url_for('home'))  # Redirect to home after successful login
         else:
-            flash('Invalid username or password. Please try again.', 'danger')
-
+            flash('Invalid username or password!', 'danger')
+    
     return render_template('login.html')
 
+
+#Logout route
 @app.route('/logout')
 def logout():
     session.pop('user_id', None)
@@ -203,4 +225,9 @@ def view_staff():
 
 if __name__ == '__main__':
     app.run(debug=True)
+@app.route('/logout')
+def logout():
+    session.pop('user_id', None)
+    flash('You have been logged out.', 'info')
+    return render_template('logout.html')  # Render logout template
 

@@ -2,27 +2,115 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuickMed Rwanda - Home</title>
-</head>
-<body>
-    <h1>Welcome to QuickMed Rwanda</h1>
-    <nav>
-        <ul>
-            <li><a href="{{ url_for('home') }}">Home</a></li>
-            <li><a href="{{ url_for('register_patient') }}">Register Patient</a></li>
-            <li><a href="{{ url_for('appointments') }}">Schedule Appointment</a></li>
-            <li><a href="{{ url_for('patient_list') }}">View Patients</a></li>
-            <li><a href="{{ url_for('staff_management') }}">Staff Management</a></li>
-            <li><a href="{{ url_for('view_appointments') }}">View Appointments</a></li>
-            <li><a href="{{ url_for('view_staff') }}">View Staff</a></li>
-            <li><a href="{{ url_for('login') }}">Login</a></li>
-            <li><a href="{{ url_for('signup') }}">Sign Up</a></li>
-        </ul>
-    </nav>
+    <title>Welcome to QuickMed</title>
+    <style>
+        /* Reset default styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
 
-    <p>QuickMed Rwanda is your comprehensive tool for managing patients, staff, and appointments efficiently.</p>
+        body, html {
+            height: 100%;
+            background: #ffffff; /* Set background to white */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            text-align: center;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .hero h1 {
+            font-size: 36px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .hero p {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .btn-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+
+        .btn:hover {
+            background: linear-gradient(to right, #2575fc, #6a11cb);
+        }
+
+        .auth-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+
+        .auth-container a {
+            margin-left: 15px;
+            font-size: 16px;
+            color: #6a11cb;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .auth-container a:hover {
+            color: #2575fc;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Authentication Links -->
+        <div class="auth-container">
+            <a href="{{ url_for('login') }}">Login</a>
+            <a href="{{ url_for('signup') }}">Signup</a>
+            {% if session.get('user_id') %}
+                <a href="{{ url_for('logout') }}">Logout</a>
+            {% endif %}
+        </div>
+
+        <!-- Main Content -->
+        <div class="hero">
+            <h1>Welcome to QuickMed</h1>
+            <p>Your one-stop solution for hospital management.</p>
+            <div class="btn-container">
+                <a href="{{ url_for('register_patient') }}" class="btn">Register a Patient</a>
+                <a href="{{ url_for('appointments') }}" class="btn">Schedule an Appointment</a>
+                <a href="{{ url_for('patient_list') }}" class="btn">View Registered Patients</a>
+                <a href="{{ url_for('staff_management') }}" class="btn">Manage Staff</a>
+                <a href="{{ url_for('view_appointments') }}" class="btn">View Scheduled Appointments</a>
+                <a href="{{ url_for('view_staff') }}" class="btn">View Staff Members</a>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
 
