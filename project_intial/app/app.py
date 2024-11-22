@@ -32,15 +32,16 @@ def init_db():
                         name TEXT NOT NULL,
                         role TEXT NOT NULL)''')
 
-    # Users table for authentication (updated to include first_name, second_name, email, phone_number)
-    cursor.execute('''CREATE TABLE IF NOT EXISTS users (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        firstname TEXT NOT NULL,
-                        lastname TEXT NOT NULL,
-                        email TEXT UNIQUE NOT NULL,
-                        number TEXT NOT NULL,
-                        username TEXT UNIQUE,
-                        password TEXT NOT NULL)''')
+    # Users table for authentication
+    cursor.execute('DROP TABLE IF EXISTS users')
+    cursor.execute('''CREATE TABLE users (
+                     id INTEGER PRIMARY KEY AUTOINCREMENT,
+                     firstname TEXT NOT NULL,
+                     lastname TEXT NOT NULL,
+                     email TEXT UNIQUE NOT NULL,
+                     number TEXT NOT NULL,
+                     password TEXT NOT NULL)''')
+
 
     # Commit the changes and close the connection
     conn.commit()
@@ -48,7 +49,6 @@ def init_db():
 
 # Call the function to initialize the database
 init_db()
-
 
 # Routes
 @app.route('/')
@@ -73,7 +73,7 @@ def signup():
         try:
             cursor.execute(
                 '''INSERT INTO users (firstname, lastname, email, number, password) 
-                VALUES (?, ?, ?, ?, ?)''', 
+                VALUES (?, ?, ?, ?, ?)''',
                 (firstname, lastname, email, number, hashed_password)
             )
             conn.commit()
@@ -86,32 +86,28 @@ def signup():
 
     return render_template('signup.html')
 
-
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
+        email = request.form['email']
         password = request.form['password']
-        
+
         conn = sqlite3.connect('quickmed.db')
         cursor = conn.cursor()
-        
-        cursor.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username, password))
+
+        cursor.execute('SELECT * FROM users WHERE email = ?', (email,))
         user = cursor.fetchone()
-        
+
         conn.close()
-        
-        if user:
+
+        if user and check_password_hash(user[5], password):  # user[5] is the hashed password
             session['user_id'] = user[0]  # Store user ID in session
             return redirect(url_for('home'))  # Redirect to home after successful login
         else:
-            flash('Invalid username or password!', 'danger')
-    
+            flash('Invalid email or password!', 'danger')
+
     return render_template('login.html')
 
-
-#Logout route
 @app.route('/logout')
 def logout():
     session.pop('user_id', None)
@@ -225,9 +221,4 @@ def view_staff():
 
 if __name__ == '__main__':
     app.run(debug=True)
-@app.route('/logout')
-def logout():
-    session.pop('user_id', None)
-    flash('You have been logged out.', 'info')
-    return render_template('logout.html')  # Render logout template
 
