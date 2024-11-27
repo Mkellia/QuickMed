@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
+import os
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
@@ -41,7 +42,6 @@ def init_db():
                      email TEXT UNIQUE NOT NULL,
                      number TEXT NOT NULL,
                      password TEXT NOT NULL)''')
-
 
     # Commit the changes and close the connection
     conn.commit()
@@ -89,7 +89,7 @@ def signup():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form.get('email')  # Handle missing keys gracefully
+        email = request.form.get('email')
         password = request.form.get('password')
 
         if not email or not password:
@@ -105,8 +105,8 @@ def login():
         conn.close()
 
         if user and check_password_hash(user[5], password):  # user[5] is the hashed password
-            session['user_id'] = user[0]  # Store user ID in session
-            return redirect(url_for('home'))  # Redirect to home after successful login
+            session['user_id'] = user[0]
+            return redirect(url_for('home'))
         else:
             flash('Invalid email or password!', 'danger')
 
@@ -224,6 +224,8 @@ def view_staff():
 
     return render_template('view-staff.html', staff=staff)
 
+# Updated code for production
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
 
