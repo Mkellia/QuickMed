@@ -3,6 +3,6 @@ services:
     name: quickmed
     env: python3
     rootDir: app
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r QuickMed/app/requirements.txt
     startCommand: python3 app.py
 
